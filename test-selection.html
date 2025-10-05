@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Selection - ExamAce</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Reset and base styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #374151; background-color: #f9fafb; }
+        :root {
+            --primary: #15803d; --primary-foreground: #ffffff; --card: #ffffff;
+            --border: #e5e7eb; --muted-foreground: #6b7280; --ring: #84cc16; --foreground: #374151;
+        }
+
+        /* Navbar Styles (Using Tailwind utility classes for responsiveness where possible) */
+        .navbar { background-color: var(--card); border-bottom: 1px solid var(--border); padding: 0 1rem; position: sticky; top: 0; z-index: 100;}
+        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 4rem; }
+        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-link { color: var(--foreground); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+        .nav-link:hover, .nav-link.active { color: var(--primary); }
+        .nav-user { display: flex; align-items: center; gap: 1rem; }
+        .user-avatar { width: 2rem; height: 2rem; background-color: var(--primary); color: var(--primary-foreground); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; }
+        .logout-btn { background: none; border: 1px solid var(--border); color: var(--foreground); padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; transition: all 0.2s; }
+        .logout-btn:hover { background-color: #f3f4f6; }
+
+        /* Mobile menu */
+        .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.75rem; cursor: pointer; color: var(--foreground); }
+        .mobile-menu { display: none; background-color: var(--card); border-top: 1px solid var(--border); padding: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .mobile-menu.active { display: block; }
+        .mobile-nav-links { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+        .mobile-nav-links .nav-link { display: block; padding: 0.5rem 0; }
+
+        .main-container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+        .page-header { text-align: center; margin-bottom: 2rem; }
+        .page-title { font-size: 2.25rem; font-weight: 700; color: var(--primary); }
+        .page-subtitle { font-size: 1.1rem; color: var(--muted-foreground); margin-top: 0.5rem; }
+
+        /* Filter Section */
+        .filter-section { background-color: var(--card); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem; }
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .filter-group label { font-weight: 500; font-size: 0.875rem; display: block; margin-bottom: 0.5rem; }
+        .filter-select { width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 0.375rem; background-color: #f9fafb; transition: all 0.2s; }
+        .filter-select:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 2px rgba(132, 204, 22, 0.2); }
+
+        /* Test Grid */
+        .test-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .test-card { 
+            background-color: var(--card); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; 
+            display: flex; flex-direction: column; transition: all 0.2s; min-height: 250px;
+        }
+        .test-card:hover { transform: translateY(-4px); box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08); }
+        .test-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .test-title { font-size: 1.25rem; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem; }
+        .test-type-tag { background-color: #e0f2f1; color: var(--primary); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; }
+        .test-description { color: var(--muted-foreground); font-size: 0.9rem; margin: 0.5rem 0 1rem; flex-grow: 1; }
+        .test-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; font-size: 0.875rem; margin-bottom: 1.5rem; }
+        .btn-primary { 
+            background-color: var(--primary); color: var(--primary-foreground); width: 100%; padding: 0.75rem; 
+            border: none; border-radius: 0.375rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; 
+            margin-top: auto; /* Push button to the bottom of the card */
+        }
+        .btn-primary:hover { background-color: #166534; }
+        .btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        
+        /* Loading and Empty States */
+        .state-container { 
+            text-align: center; padding: 3rem; background-color: var(--card); border-radius: 0.75rem; 
+            border: 1px solid var(--border); margin-top: 2rem;
+        }
+        .state-container p { font-size: 1.1rem; color: var(--muted-foreground); }
+        .spinner { 
+            display: inline-block; width: 1.5rem; height: 1.5rem; border: 3px solid rgba(21, 128, 61, 0.3); 
+            border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-right: 0.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+
+        @media (max-width: 768px) {
+            .nav-links, .nav-user { display: none; }
+            .mobile-menu-btn { display: block; }
+            .test-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-brand">ExamAce</a>
+            <ul class="nav-links">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="test-selection.html" class="nav-link active">Mock Tests</a></li>
+                <li><a href="resources.html" class="nav-link">Resources</a></li>
+                <li><a href="tips.html" class="nav-link">Tips & Revision</a></li>
+                <li><a href="info.html" class="nav-link">Exam Info</a></li>
+            </ul>
+            <div class="nav-user">
+                <div class="user-avatar" id="user-avatar">?</div>
+                <button class="logout-btn" id="logout-btn">Logout</button>
+            </div>
+             <button class="mobile-menu-btn" id="mobile-menu-btn">&#9776;</button>
+        </div>
+        <div class="mobile-menu" id="mobile-menu">
+            <ul class="mobile-nav-links">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="test-selection.html" class="nav-link active">Mock Tests</a></li>
+                <li><a href="resources.html" class="nav-link">Resources</a></li>
+                <li><a href="tips.html" class="nav-link">Tips & Revision</a></li>
+                <li><a href="info.html" class="nav-link">Exam Info</a></li>
+                <li><a href="#" id="mobile-logout-btn" class="nav-link">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <main class="main-container">
+        <header class="page-header">
+            <h1 class="page-title">Available Mock Tests</h1>
+            <p class="page-subtitle">Find the perfect test to advance your preparation.</p>
+        </header>
+
+        <section class="filter-section">
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label for="exam-filter">Exam Type</label>
+                    <select id="exam-filter" class="filter-select">
+                        <option value="all">All Exams</option>
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="subject-filter">Subject</label>
+                    <select id="subject-filter" class="filter-select">
+                        <option value="all">All Subjects</option>
+                         <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="duration-filter">Duration</label>
+                    <select id="duration-filter" class="filter-select">
+                        <option value="all">Any Duration</option>
+                        <option value="short">Under 1 hour</option>
+                        <option value="medium">1-2 hours (60-120 min)</option>
+                        <option value="long">Over 2 hours (121+ min)</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section id="state-container" class="state-container">
+            <div class="flex items-center justify-center">
+                <div class="spinner"></div><p>Loading tests...</p>
+            </div>
+        </section>
+        <section class="test-grid" id="test-grid"></section>
+    </main>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        
+        // --- SUPABASE CREDENTIALS (MUST MATCH UPLOAD.HTML) ---
+        const SUPABASE_URL = 'https://evetjiyruynvqhjfmuny.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2ZXRqaXlydXludnFoamZtdW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1ODIyNjUsImV4cCI6MjA3NTE1ODI2NX0.5wjRCHPesj_4OywiFyFyh3uuYtD8zOGBY9aARUAOmxU';
+
+        // Initialize Supabase client
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Redirect to login page if user is not authenticated
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html'; // Assuming you have a login page
+                return null;
+            }
+            return session.user;
+        }
+
+        class TestSelectionPage {
+            constructor(user) {
+                this.user = user;
+                this.allTests = [];
+                this.filteredTests = [];
+                this.stateContainer = document.getElementById('state-container');
+                this.testGrid = document.getElementById('test-grid');
+
+                this.initializeEventListeners();
+                this.loadUserUI(user);
+                this.fetchTests();
+            }
+            
+            loadUserUI(user) {
+                const initial = user.email ? user.email.charAt(0).toUpperCase() : '?';
+                document.getElementById('user-avatar').textContent = initial;
+            }
+
+            async fetchTests() {
+                this.showState('<div class="spinner"></div><p>Loading tests...</p>');
+                this.testGrid.innerHTML = ''; // Clear previous grid content
+
+                try {
+                    // Fetch ALL records from the 'tests' table
+                    // We need the ID (primary key) and the 'testdata' JSON object
+                    const { data, error } = await supabase
+                        .from('tests')
+                        .select('id, testdata');
+
+                    if (error) {
+                        // Crucial: Report the error details to the user for debugging RLS
+                        console.error("Supabase Fetch Error:", error);
+                        throw new Error(`Data fetch failed. Error: ${error.message} (Code: ${error.code}). Check RLS policy.`);
+                    }
+                    
+                    if (!data || data.length === 0) {
+                        this.showState('No tests found in the database. Please upload tests using the Admin portal.');
+                        return;
+                    }
+
+                    // Map the fetched data into a simplified array
+                    this.allTests = data.map(record => {
+                        // The entire test structure is inside the 'testdata' JSON column
+                        const testData = record.testdata; 
+                        
+                        // Combine the PostgreSQL primary key 'id' with the test data properties
+                        return {
+                            id: record.id,
+                            title: testData.title,
+                            type: testData.type,
+                            description: testData.description,
+                            duration: testData.duration,
+                            negativeMarks: testData.negativeMarks,
+                            subjects: testData.subjects,
+                            questions: testData.questions,
+                            marks: testData.marks,
+                        };
+                    }).filter(test => test.title); // Basic safety check
+                    
+                    this.filteredTests = [...this.allTests];
+
+                    if (this.filteredTests.length === 0) {
+                        this.showState('Tests were fetched, but no valid test data could be processed.');
+                        return;
+                    }
+
+                    this.populateFilters();
+                    this.renderTests();
+
+                } catch (error) {
+                    console.error("Error fetching tests from Supabase: ", error);
+                    // Show a more detailed error message
+                    this.showState(`<p class="text-red-600 font-bold">Failed to load tests:</p><p>${error.message}</p><p class="text-sm mt-2">The most common issue is a missing **RLS Policy** on the \`tests\` table allowing \`SELECT\` access to authenticated users.</p>`);
+                }
+            }
+
+            populateFilters() {
+                const examSelect = document.getElementById('exam-filter');
+                const subjectSelect = document.getElementById('subject-filter');
+                
+                // Clear existing dynamic options
+                Array.from(examSelect.options).filter(opt => opt.value !== 'all').forEach(opt => opt.remove());
+                Array.from(subjectSelect.options).filter(opt => opt.value !== 'all').forEach(opt => opt.remove());
+
+                const uniqueExams = new Set();
+                const uniqueSubjects = new Set();
+
+                this.allTests.forEach(test => {
+                    if (test.type) uniqueExams.add(test.type);
+                    if (test.subjects && Array.isArray(test.subjects)) {
+                        test.subjects.forEach(sub => uniqueSubjects.add(sub));
+                    }
+                });
+
+                uniqueExams.forEach(exam => {
+                    const option = new Option(exam, exam);
+                    examSelect.add(option);
+                });
+
+                uniqueSubjects.forEach(subject => {
+                    const option = new Option(subject, subject);
+                    subjectSelect.add(option);
+                });
+            }
+
+            initializeEventListeners() {
+                document.getElementById('exam-filter').addEventListener('change', () => this.applyFilters());
+                document.getElementById('subject-filter').addEventListener('change', () => this.applyFilters());
+                document.getElementById('duration-filter').addEventListener('change', () => this.applyFilters());
+                
+                const handleLogout = async () => {
+                    await supabase.auth.signOut().catch(e => console.error(e));
+                    window.location.href = 'login.html';
+                };
+                document.getElementById('logout-btn').addEventListener('click', handleLogout);
+                document.getElementById('mobile-logout-btn').addEventListener('click', handleLogout);
+
+                document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+                     document.getElementById('mobile-menu').classList.toggle('active');
+                });
+            }
+
+            applyFilters() {
+                const examType = document.getElementById('exam-filter').value;
+                const subject = document.getElementById('subject-filter').value;
+                const duration = document.getElementById('duration-filter').value;
+
+                this.filteredTests = this.allTests.filter(test => {
+                    const examMatch = examType === 'all' || test.type === examType;
+                    const subjectMatch = subject === 'all' || (test.subjects && test.subjects.includes(subject));
+                    let durationMatch = true;
+                    if (duration !== 'all') {
+                        if (duration === 'short') durationMatch = test.duration < 60;
+                        else if (duration === 'medium') durationMatch = test.duration >= 60 && test.duration <= 120;
+                        else if (duration === 'long') durationMatch = test.duration > 120;
+                    }
+                    
+                    return examMatch && subjectMatch && durationMatch;
+                });
+
+                this.renderTests();
+            }
+
+            renderTests() {
+                if (this.filteredTests.length === 0) {
+                    this.showState('No tests found matching your criteria.');
+                    this.testGrid.innerHTML = '';
+                    return;
+                }
+                
+                this.stateContainer.style.display = 'none';
+                this.testGrid.innerHTML = this.filteredTests.map(test => `
+                    <div class="test-card">
+                        <div>
+                            <div class="test-header">
+                                <h3 class="test-title">${test.title}</h3>
+                                <span class="test-type-tag">${test.type}</span>
+                            </div>
+                            <p class="test-description">${test.description || 'No description provided.'}</p>
+                        </div>
+                        <div>
+                            <div class="test-details">
+                                <span>⏱️ ${test.duration || 0} mins</span>
+                                <span>📝 ${test.questions || 0} Questions</span>
+                                <span>🎯 ${test.marks || 0} Marks</span>
+                                <span>⚠️ -${test.negativeMarks || 0} Negative</span>
+                            </div>
+                            <button class="btn-primary" data-testid="${test.id}">Start Test</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Attach event listeners to the new buttons
+                document.querySelectorAll('.test-card .btn-primary').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        this.startTest(e.target.dataset.testid, e.target);
+                    });
+                });
+            }
+
+            async startTest(testId, buttonElement) {
+                buttonElement.disabled = true;
+                buttonElement.textContent = 'Loading...';
+
+                try {
+                    // Fetch the specific test document again to get the full JSON payload
+                    const { data, error } = await supabase
+                        .from('tests')
+                        .select('testdata')
+                        .eq('id', testId)
+                        .single();
+
+                    if (error) throw error;
+                    
+                    if (data && data.testdata) {
+                        // testdata contains the full JSON (questions_data, etc.)
+                        sessionStorage.setItem('current_test', JSON.stringify(data.testdata));
+                        window.location.href = 'test-instruction.html'; // Redirect to start the test
+                    } else {
+                        throw new Error("Test data found empty.");
+                    }
+
+                } catch (error) {
+                    console.error("Error fetching full test data:", error);
+                    alert(`An error occurred while loading the test: ${error.message}.`);
+                    buttonElement.disabled = false;
+                    buttonElement.textContent = 'Start Test';
+                }
+            }
+
+            showState(message) {
+                this.stateContainer.innerHTML = message;
+                this.stateContainer.style.display = 'block';
+            }
+        }
+        
+        checkAuth().then(user => {
+            if (user) {
+                new TestSelectionPage(user);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Information - ExamAce</title>
+    <style>
+        /* Reset and base styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: #374151; background-color: #f9fafb; min-height: 100vh; }
+        :root {
+            --primary: #15803d; --primary-foreground: #ffffff; --secondary: #84cc16;
+            --card: #ffffff; --muted: #f3f4f6; --muted-foreground: #6b7280;
+            --border: #e5e7eb; --foreground: #374151;
+        }
+
+        /* Navigation styles */
+        .navbar { background-color: var(--card); border-bottom: 1px solid var(--border); padding: 0 1rem; position: sticky; top: 0; z-index: 100; }
+        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 4rem; }
+        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-link { color: var(--foreground); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+        .nav-link:hover, .nav-link.active { color: var(--primary); }
+        .nav-user { display: flex; align-items: center; gap: 1rem; }
+        .user-avatar { width: 2rem; height: 2rem; background-color: var(--primary); color: var(--primary-foreground); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .logout-btn { background: none; border: 1px solid var(--border); color: var(--foreground); padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { background-color: var(--muted); }
+
+        /* Mobile menu */
+        .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.75rem; cursor: pointer; color: var(--foreground); }
+        .mobile-menu { display: none; background-color: var(--card); border-top: 1px solid var(--border); padding: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .mobile-menu.active { display: block; }
+        .mobile-nav-links { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+        .mobile-nav-links .nav-link { display: block; padding: 0.5rem 0; }
+        
+        /* Main Content */
+        .main-container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+        .page-header { text-align: center; margin-bottom: 2.5rem; }
+        .page-title { font-size: 2.25rem; font-weight: 700; color: var(--primary); }
+        .page-subtitle { font-size: 1.1rem; color: var(--muted-foreground); margin-top: 0.5rem; }
+        
+        /* Tabs styles */
+        .tab-nav { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2.5rem; }
+        .tab-btn {
+            padding: 0.75rem 2rem;
+            border: 2px solid var(--border);
+            background: var(--card);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--muted-foreground);
+            border-radius: 999px;
+            transition: all 0.2s;
+        }
+        .tab-btn.active { 
+            color: var(--primary-foreground); 
+            background-color: var(--primary); 
+            border-color: var(--primary); 
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .updates-section { margin-bottom: 2rem; }
+        .section-title { font-size: 1.75rem; font-weight: 600; color: var(--primary); margin-bottom: 1.5rem; border-bottom: 2px solid var(--primary); display: inline-block; padding-bottom: 0.5rem; }
+
+        .exam-updates-container, .exam-info-container { display: flex; flex-direction: column; gap: 2rem; }
+        .exam-card { background-color: var(--card); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .exam-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .exam-card-title { font-size: 1.5rem; font-weight: 700; color: var(--foreground); }
+        .exam-card-tag { background-color: var(--primary); color: var(--primary-foreground); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+
+        .update-list { list-style: none; padding: 0; }
+        .update-item { display: flex; align-items: flex-start; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+        .update-item:last-child { border-bottom: none; }
+        .update-date { font-weight: 600; color: var(--primary); min-width: 100px; }
+        .update-details { flex-grow: 1; }
+        .update-text { margin-bottom: 0.25rem; }
+        .update-info { font-size: 0.85rem; color: var(--muted-foreground); }
+        
+        .important-note {
+            background-color: #fffbeb;
+            color: #b45309;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .info-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .info-table th, .info-table td { text-align: left; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+        .info-table th { font-weight: 600; color: var(--foreground); }
+
+        @media (max-width: 768px) {
+            .nav-links, .nav-user { display: none; }
+            .mobile-menu-btn { display: block; }
+            .update-item { flex-direction: column; gap: 0.25rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-brand">ExamAce</a>
+            <ul class="nav-links">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="test-selection.html" class="nav-link">Mock Tests</a></li>
+                <li><a href="resources.html" class="nav-link">Resources</a></li>
+                <li><a href="tips.html" class="nav-link">Tips & Revision</a></li>
+                <li><a href="exam-info.html" class="nav-link active">Exam Info</a></li>
+            </ul>
+            <div class="nav-user">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <button class="logout-btn" id="logout-btn">Logout</button>
+            </div>
+            <button class="mobile-menu-btn" id="mobile-menu-btn">&#9776;</button>
+        </div>
+        <div class="mobile-menu" id="mobile-menu">
+            <ul class="mobile-nav-links">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="test-selection.html" class="nav-link">Mock Tests</a></li>
+                <li><a href="resources.html" class="nav-link">Resources</a></li>
+                <li><a href="tips.html" class="nav-link">Tips & Revision</a></li>
+                <li><a href="exam-info.html" class="nav-link active">Exam Info</a></li>
+                <li><a href="#" id="mobile-logout-btn" class="nav-link">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <header class="page-header">
+            <h1 class="page-title">Exam Information Hub</h1>
+            <p class="page-subtitle">Stay up-to-date with the latest announcements, important dates, and deadlines for major entrance exams.</p>
+        </header>
+        
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="updates-section">Updates</button>
+            <button class="tab-btn" data-tab="info-section">Exam Info</button>
+        </nav>
+
+        <section id="updates-section" class="tab-content active">
+            <div class="exam-updates-container">
+                <div class="exam-card">
+                    <div class="exam-card-header">
+                        <h3 class="exam-card-title">JEE (Main & Advanced)</h3>
+                        <span class="exam-card-tag">Engineering</span>
+                    </div>
+                    <ul class="update-list">
+                        <li class="update-item">
+                            <span class="update-date">October 28, 2024</span>
+                            <div class="update-details">
+                                <p class="update-text">JEE Main 2025 Session 1 registration begins.</p>
+                                <p class="update-info">Online application forms were released on jeemain.nta.ac.in.</p>
+                            </div>
+                        </li>
+                        <li class="update-item">
+                            <span class="update-date">January 22-31, 2025</span>
+                            <div class="update-details">
+                                <p class="update-text">JEE Main 2025 Session 1 exam dates.</p>
+                                <p class="update-info">The exam will be conducted by NTA in multiple shifts.</p>
+                            </div>
+                        </li>
+                        <li class="update-item">
+                            <span class="update-date">November 22, 2024</span>
+                            <div class="update-details">
+                                <p class="update-text">Last date to apply for JEE Main 2025 Session 1.</p>
+                                <p class="update-info">Registration closes at 9:00 PM IST.</p>
+                            </div>
+                        </li>
+                         <li class="update-item">
+                            <span class="update-date">April 1-8, 2025</span>
+                            <div class="update-details">
+                                <p class="update-text">Tentative JEE Main 2025 Session 2 exam dates.</p>
+                                <p class="update-info">Registration for Session 2 is scheduled to open on January 31, 2025.</p>
+                            </div>
+                        </li>
+                        <li class="update-item">
+                            <span class="update-date">May 18, 2025</span>
+                            <div class="update-details">
+                                <p class="update-text">JEE Advanced 2025 exam date.</p>
+                                <p class="update-info">The exam will be held in two papers on the same day: Paper 1 (9 AM - 12 PM) and Paper 2 (2:30 PM - 5:30 PM).</p>
+                            </div>
+                        </li>
+                         <li class="update-item">
+                            <span class="update-date">April 23 - May 2, 2025</span>
+                            <div class="update-details">
+                                <p class="update-text">Registration window for JEE Advanced 2025.</p>
+                                <p class="update-info">Only candidates who qualify JEE Main can apply.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="exam-card">
+                    <div class="exam-card-header">
+                        <h3 class="exam-card-title">NEET (UG)</h3>
+                        <span class="exam-card-tag">Medical</span>
+                    </div>
+                    <ul class="update-list">
+                        <li class="update-item">
+                            <span class="update-date">May 4, 2025</span>
+                            <div class="update-details">
+                                <p class="update-text">NEET UG 2025 exam date.</p>
+                                <p class="update-info">The exam is scheduled to be held in offline (pen-and-paper) mode from 2:00 PM to 5:00 PM.</p>
+                            </div>
+                        </li>
+                        <li class="update-item">
+                            <span class="update-date">February 7 - March 7, 2025</span>
+                            <div class="update-details">
+                                <p class="update-text">NEET UG 2025 registration window.</p>
+                                <p class="update-info">The last date to submit the online application form is March 7, 2025, at 11:50 PM.</p>
+                            </div>
+                        </li>
+                         <li class="update-item">
+                            <span class="update-date">Sept 29 - Oct 5, 2025</span>
+                            <div class="update-details">
+                                <p class="update-text">Round 3 Counselling registration for NEET UG 2025.</p>
+                                <p class="update-info">Conducted by MCC at mcc.nic.in.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="exam-card">
+                    <div class="exam-card-header">
+                        <h3 class="exam-card-title">KCET</h3>
+                        <span class="exam-card-tag">State-Level</span>
+                    </div>
+                    <ul class="update-list">
+                         <li class="update-item">
+                            <span class="update-date">April 16-17, 2025</span>
+                            <div class="update-details">
+                                <p class="update-text">KCET 2025 exam dates.</p>
+                                <p class="update-info">The Karnataka Common Entrance Test (KCET) subject papers are scheduled for these dates. The Kannada language test was held on April 15, 2025.</p>
+                            </div>
+                        </li>
+                        <li class="update-item">
+                            <span class="update-date">January 23 - Feb 24, 2025</span>
+                            <div class="update-details">
+                                <p class="update-text">KCET 2025 registration window.</p>
+                                <p class="update-info">The last date to pay the application fee was February 25, 2025.</p>
+                            </div>
+                        </li>
+                        <li class="update-item">
+                            <span class="update-date">May 24, 2025</span>
+                            <div class="update-details">
+                                <p class="update-text">KCET 2025 result announcement.</p>
+                                <p class="update-info">Results were announced along with the scorecard.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="important-note">
+                <p><strong>Note:</strong> All dates are subject to change by the conducting authority. Always refer to the official websites for the most accurate and up-to-date information.</p>
+            </div>
+        </section>
+
+        <section id="info-section" class="tab-content">
+            <div class="exam-info-container">
+                <div class="exam-card">
+                    <div class="exam-card-header">
+                        <h3 class="exam-card-title">JEE (Main) Exam</h3>
+                        <span class="exam-card-tag">Details</span>
+                    </div>
+                    <table class="info-table">
+                        <tr>
+                            <th>Purpose</th>
+                            <td>Admission to undergraduate engineering programs at NITs, IIITs, other centrally funded technical institutions, and state-level colleges. It is also a qualifying exam for JEE Advanced.</td>
+                        </tr>
+                        <tr>
+                            <th>Exam Mode</th>
+                            <td>Computer-based Test (CBT), except for the Drawing section in Paper 2A (B.Arch) which is offline.</td>
+                        </tr>
+                        <tr>
+                            <th>Exam Duration</th>
+                            <td>3 hours for Paper 1 (B.E./B.Tech) and Paper 2B (B.Planning).</td>
+                        </tr>
+                        <tr>
+                            <th>Marking Scheme</th>
+                            <td>
+                                <ul>
+                                    <li>MCQs: +4 for each correct answer, -1 for each incorrect answer.</li>
+                                    <li>Numerical Value Questions (NVQs): +4 for each correct answer, -1 for each incorrect answer.</li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Subjects & Questions</th>
+                            <td>
+                                <ul>
+                                    <li>**Paper 1 (B.E./B.Tech):** 75 questions total (25 each from Physics, Chemistry, and Mathematics). Each subject has 20 MCQs and 5 NVQs, with all questions being compulsory.</li>
+                                    <li>**Paper 2A (B.Arch):** 77 questions total from Mathematics, Aptitude Test, and Drawing.</li>
+                                    <li>**Paper 2B (B.Planning):** 100 questions total from Mathematics, Aptitude Test, and Planning-based questions.</li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="exam-card">
+                    <div class="exam-card-header">
+                        <h3 class="exam-card-title">NEET (UG) Exam</h3>
+                        <span class="exam-card-tag">Details</span>
+                    </div>
+                    <table class="info-table">
+                        <tr>
+                            <th>Purpose</th>
+                            <td>Admission to undergraduate medical (MBBS), dental (BDS), and AYUSH (BAMS, BUMS, BHMS, etc.) courses in India.</td>
+                        </tr>
+                        <tr>
+                            <th>Exam Mode</th>
+                            <td>Offline (Pen-and-paper mode).</td>
+                        </tr>
+                        <tr>
+                            <th>Exam Duration</th>
+                            <td>3 hours (180 minutes).</td>
+                        </tr>
+                        <tr>
+                            <th>Marking Scheme</th>
+                            <td>
+                                <ul>
+                                    <li>+4 for each correct answer.</li>
+                                    <li>-1 for each incorrect answer.</li>
+                                    <li>0 for unattempted questions.</li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Subjects & Questions</th>
+                            <td>180 compulsory Multiple-Choice Questions (MCQs) total. 45 questions each from Physics and Chemistry, and 90 questions from Biology (Botany & Zoology).</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="exam-card">
+                    <div class="exam-card-header">
+                        <h3 class="exam-card-title">KCET Exam</h3>
+                        <span class="exam-card-tag">Details</span>
+                    </div>
+                    <table class="info-table">
+                        <tr>
+                            <th>Purpose</th>
+                            <td>Admission to undergraduate courses in Engineering, Technology, B. Pharma, B. Arch, and other professional programs in colleges across Karnataka.</td>
+                        </tr>
+                        <tr>
+                            <th>Exam Mode</th>
+                            <td>Offline (Pen-and-paper mode).</td>
+                        </tr>
+                        <tr>
+                            <th>Exam Duration</th>
+                            <td>80 minutes for each subject paper.</td>
+                        </tr>
+                        <tr>
+                            <th>Marking Scheme</th>
+                            <td>
+                                <ul>
+                                    <li>+1 for each correct answer.</li>
+                                    <li>There is **no negative marking** for incorrect answers.</li>
+                                    <li>No marks will be awarded for multiple answers to a single question.</li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Subjects & Questions</th>
+                            <td>180 questions total (60 questions each from Physics, Chemistry, and Mathematics). Each subject paper is worth 60 marks.</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        
+        // --- SUPABASE CREDENTIALS ---
+        const SUPABASE_URL = 'https://evetjiyruynvqhjfmuny.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2ZXRqaXlydXludnFoamZtdW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1ODIyNjUsImV4cCI6MjA3NTE1ODI2NX0.5wjRCHPesj_4OywiFyFyh3uuYtD8zOGBY9aARUAOmxU';
+        
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- AUTHENTICATION ---
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session && session.user) {
+                const userName = session.user.email || 'User';
+                document.getElementById('user-avatar').textContent = userName.charAt(0).toUpperCase();
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+        checkAuth();
+        
+        const handleLogout = () => supabase.auth.signOut().catch(e => console.error(e));
+        document.getElementById('logout-btn').addEventListener('click', handleLogout);
+        document.getElementById('mobile-logout-btn').addEventListener('click', handleLogout);
+
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('active');
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove 'active' class from all buttons and content
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add 'active' class to the clicked button
+                    button.classList.add('active');
+                    
+                    // Show the corresponding content section
+                    const targetTabId = button.dataset.tab;
+                    document.getElementById(targetTabId).classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

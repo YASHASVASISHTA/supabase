@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ExamAce</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            background-color: #f9fafb;
+            min-height: 100vh;
+        }
+
+        /* Color variables for consistency */
+        :root {
+            --primary: #15803d;
+            --primary-foreground: #ffffff;
+            --secondary: #84cc16;
+            --card: #ffffff;
+            --muted: #f3f4f6;
+            --muted-foreground: #6b7280;
+            --border: #e5e7eb;
+            --foreground: #374151;
+        }
+
+        /* Navigation styles */
+        .navbar {
+            background-color: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 4rem;
+        }
+
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: var(--foreground);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 2rem;
+            height: 2rem;
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--foreground);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background-color: var(--muted);
+        }
+
+        /* Mobile menu */
+        .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+        .mobile-menu { display: none; background-color: var(--card); border-top: 1px solid var(--border); padding: 1rem; }
+        .mobile-menu.active { display: block; }
+        .mobile-nav-links { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+
+        /* Main content */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        #loading-state { text-align: center; padding: 4rem; }
+        
+        .welcome-section {
+            margin-bottom: 2rem;
+        }
+
+        .welcome-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-subtitle {
+            color: var(--muted-foreground);
+            font-size: 1.125rem;
+        }
+
+        /* Card styles */
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        /* Test list styles */
+        .test-list { list-style: none; }
+        .test-item {
+            display: grid;
+            grid-template-columns: 1fr;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border);
+        }
+        .test-item:last-child { margin-bottom: 0; }
+        
+        .test-info h4 { font-weight: 600; font-size: 1.125rem; }
+        .test-meta { color: var(--muted-foreground); font-size: 0.875rem; display: flex; gap: 1rem; }
+        
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 0.375rem; font-weight: 500; cursor: pointer; text-decoration: none; text-align: center; transition: all 0.2s; }
+        .btn-primary { background-color: var(--primary); color: var(--primary-foreground); }
+        .btn-primary:hover { background-color: #166534; }
+        
+        /* New informational sections */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .info-card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .info-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+        .info-card p {
+            color: var(--muted-foreground);
+            margin-bottom: 1rem;
+        }
+        .info-card a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            .welcome-title { font-size: 1.75rem; }
+            .test-item { grid-template-columns: 1fr; gap: 0.75rem; }
+            .test-item .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-brand">ExamAce</a>
+            <ul class="nav-links">
+                <li><a href="dashboard.html" class="nav-link active">Dashboard</a></li>
+                <li><a href="test-selection.html" class="nav-link">Mock Tests</a></li>
+              
+                <li><a href="resources.html" class="nav-link">Resources</a></li>
+                <li><a href="tips.html" class="nav-link">Tips & Shortcuts</a></li>
+                <li><a href="info.html" class="nav-link">Exam Info</a></li>
+                
+            </ul>
+            <div class="nav-user">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <button class="logout-btn" id="logout-btn">Logout</button>
+            </div>
+            <button class="mobile-menu-btn" id="mobile-menu-btn">&#9776;</button>
+        </div>
+        <div class="mobile-menu" id="mobile-menu">
+            <ul class="mobile-nav-links">
+                <li><a href="dashboard.html" class="nav-link active">Dashboard</a></li>
+                <li><a href="test-selection.html" class="nav-link">Mock Tests</a></li>
+                 <li><a href="info.html" class="nav-link">Exam Info</a></li>
+                <li><a href="resources.html" class="nav-link">Resources</a></li>
+                <li><a href="tips.html" class="nav-link">Tips & Shortcuts</a></li>
+            
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <!-- Removed #loading-state display block, will be hidden by default -->
+        
+        <div id="dashboard-content">
+            <section class="welcome-section">
+                <!-- Name will be populated by JS -->
+                <h1 class="welcome-title" id="welcome-title">Welcome to ExamAce!</h1>
+                <p class="welcome-subtitle">Your central hub for exam preparation.</p>
+            </section>
+
+            <section class="card">
+                <h2 class="card-title">Available Mock Tests</h2>
+                <ul class="test-list" id="available-tests-list">
+                    <!-- Hardcoded test items -->
+                    <li class="test-item">
+                        <div class="test-info">
+                            <h4>JEE Mock Test 1</h4>
+                            <div class="test-meta">
+                                <span>90 Questions</span>
+                                <span>&bull;</span>
+                                <span>180 mins</span>
+                                <span>&bull;</span>
+                                <span>360 Marks</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="test-item">
+                        <div class="test-info">
+                            <h4>NEET Mock Test 2</h4>
+                            <div class="test-meta">
+                                <span>180 Questions</span>
+                                <span>&bull;</span>
+                                <span>180 mins</span>
+                                <span>&bull;</span>
+                                <span>720 Marks</span>
+                            </div>
+                        </div>
+                    </li>
+                     <li class="test-item">
+                        <div class="test-info">
+                            <h4>KCET Mock Test 3</h4>
+                            <div class="test-meta">
+                                <span>60 Questions</span>
+                                <span>&bull;</span>
+                                <span>80 mins</span>
+                                <span>&bull;</span>
+                                <span>60 Marks</span>
+                            </div>
+                        </div>
+                    </li>
+                     <li class="test-item">
+                        <div class="test-info">
+                            <h4>JEE Mock Test 4</h4>
+                            <div class="test-meta">
+                                <span>90 Questions</span>
+                                <span>&bull;</span>
+                                <span>180 mins</span>
+                                <span>&bull;</span>
+                                <span>360 Marks</span>
+                            </div>
+                        </div>
+                    </li>
+                     <li class="test-item">
+                        <div class="test-info">
+                            <h4>NEET Mock Test 5</h4>
+                            <div class="test-meta">
+                                <span>180 Questions</span>
+                                <span>&bull;</span>
+                                <span>180 mins</span>
+                                <span>&bull;</span>
+                                <span>720 Marks</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <a href="test-selection.html" class="btn btn-primary" style="margin-top: 1.5rem; display: block;">See all tests</a>
+            </section>
+
+            <section class="info-grid">
+                <div class="info-card">
+                    <h3>Track Your Progress</h3>
+                    <p>Go to the analytics page to view your performance over time, identify weak areas, and understand your test-taking trends.</p>
+                    <a href="analytics.html">Go to Analytics →</a>
+                </div>
+                <div class="info-card">
+                    <h3>Explore Study Resources</h3>
+                    <p>Find a collection of previous year's question papers and other study materials to supplement your preparation.</p>
+                    <a href="resources.html">Go to Resources →</a>
+                </div>
+                <div class="info-card">
+                    <h3>Get Tips & Tricks</h3>
+                    <p>Find quick tips, revision notes, and shortcuts to help you solve problems faster and improve your overall speed.</p>
+                    <a href="tips.html">Go to Tips & Shortcuts →</a>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        
+        // --- SUPABASE CREDENTIALS ---
+        const SUPABASE_URL = 'https://evetjiyruynvqhjfmuny.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2ZXRqaXlydXludnFoamZtdW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1ODIyNjUsImV4cCI6MjA3NTE1ODI2NX0.5wjRCHPesj_4OywiFyFyh3uuYtD8zOGBY9aARUAOmxU';
+        
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- AUTHENTICATION & UI LOADING ---
+        async function checkAuthAndLoad() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session && session.user) {
+                // Instantly display UI and update username
+                const userName = session.user.email || 'User';
+                updateWelcomeMessage(userName);
+                
+            } else {
+                // If no session, redirect to login
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // --- UI UPDATE FUNCTIONS ---
+
+        function updateWelcomeMessage(name) {
+            // Use the part before @ for a cleaner display name
+            const display_name = name.includes('@') ? name.split('@')[0] : name;
+            
+            // Update the welcome message
+            document.getElementById('welcome-title').textContent = `Welcome, ${display_name.toUpperCase()}!`;
+            
+            // Update the avatar letter
+            document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+        }
+
+        // --- EVENT LISTENERS ---
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            supabase.auth.signOut().catch(error => console.error('Sign out error', error));
+        });
+
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('active');
+        });
+        
+        // Mobile logout button listener
+        document.querySelector('.mobile-nav-links a[href="#"]').addEventListener('click', (e) => {
+            e.preventDefault();
+            supabase.auth.signOut().catch(error => console.error('Sign out error', error));
+        });
+
+
+        // Start Auth Check
+        checkAuthAndLoad();
+    </script>
+</body>
+</html>
